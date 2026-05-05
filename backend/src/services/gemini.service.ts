@@ -4,17 +4,109 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-export const analyzeReviews = async (
-  asin: string,
-  productTitle: string,
-  reviews: string[],
-): Promise<{
+type ReviewAnalysis = {
   purchaseCriteria: string[];
   complaints: string[];
   sentimentScore: number;
   differentiators: string[];
-}> => {
-  const defaultResponse = {
+};
+
+const ANALYSIS_SCHEMA = {
+  type: "object",
+  properties: {
+    purchaseCriteria: {
+      type: "array",
+      items: { type: "string" },
+    },
+    complaints: {
+      type: "array",
+      items: { type: "string" },
+    },
+    sentimentScore: {
+      type: "number",
+    },
+    differentiators: {
+      type: "array",
+      items: { type: "string" },
+    },
+  },
+  required: [
+    "purchaseCriteria",
+    "complaints",
+    "sentimentScore",
+    "differentiators",
+  ],
+};
+
+const normalizeStringArray = (value: unknown, fallback: string[]) => {
+  if (!Array.isArray(value)) return fallback;
+
+  const normalized = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return normalized.length > 0 ? normalized : fallback;
+};
+
+const parseGeminiJson = (text: string) => {
+  const clean = text.replace(/```json|```/g, "").trim();
+
+  try {
+    return JSON.parse(clean);
+  } catch {
+    const jsonStart = clean.indexOf("{");
+    const jsonEnd = clean.lastIndexOf("}");
+
+    if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+      throw new Error(`Gemini returned non-JSON text: ${clean.slice(0, 200)}`);
+    }
+
+    return JSON.parse(clean.slice(jsonStart, jsonEnd + 1));
+  }
+};
+
+const buildReviewBasedFallback = (reviews: string[]): ReviewAnalysis => {
+  const text = reviews.join(" ").toLowerCase();
+
+  const criteria = [
+    { label: "Dandruff control", terms: ["dandruff", "flakes", "flaky"] },
+    { label: "Reduced hair fall", terms: ["hair fall", "hairfall"] },
+    { label: "Effective results", terms: ["effective", "works", "result"] },
+    { label: "Good value", terms: ["price", "deal", "value", "rs", "₹"] },
+    { label: "Gentle cleansing", terms: ["clean", "scalp", "soft", "smooth"] },
+  ]
+    .filter(({ terms }) => terms.some((term) => text.includes(term)))
+    .map(({ label }) => label)
+    .slice(0, 5);
+
+  const complaints = [
+    { label: "Packaging or quantity concerns", terms: ["packaging", "package", "quantity", "used"] },
+    { label: "Scent preference issues", terms: ["scent", "smell", "fragrance"] },
+    { label: "Dryness or frizz concerns", terms: ["dry", "dryout", "frizzy", "frizz"] },
+    { label: "Hair fall concerns", terms: ["hair fall", "hairfall"] },
+  ]
+    .filter(({ terms }) => terms.some((term) => text.includes(term)))
+    .map(({ label }) => label)
+    .slice(0, 3);
+
+  return {
+    purchaseCriteria:
+      criteria.length > 0 ? criteria : ["Positive customer feedback"],
+    complaints:
+      complaints.length > 0 ? complaints : ["No repeated complaint pattern found"],
+    sentimentScore: text.includes("cons") || text.includes("complaint") ? 3.5 : 4,
+    differentiators:
+      criteria.length > 0 ? criteria.slice(0, 3) : ["Review-backed product appeal"],
+  };
+};
+
+export const analyzeReviews = async (
+  asin: string,
+  productTitle: string,
+  reviews: string[],
+): Promise<ReviewAnalysis> => {
+  const defaultResponse: ReviewAnalysis = {
     purchaseCriteria: ["Quality", "Value for money", "Performance"],
     complaints: ["No major complaints found"],
     sentimentScore: 3,
@@ -23,27 +115,24 @@ export const analyzeReviews = async (
 
   if (reviews.length === 0) return defaultResponse;
 
-  const reviewText =
-    reviews.length > 0
-      ? reviews.slice(0, 20).join("\n---\n")
-      : "No customer reviews available yet.";
+  const fallbackResponse = buildReviewBasedFallback(reviews);
+  const reviewText = reviews.slice(0, 20).join("\n---\n");
 
   const prompt = `You are an Amazon product analyst. Analyze these customer reviews for "${productTitle}" (ASIN: ${asin}).
 
-  ${reviews.length > 0 ? `Customer Reviews:\n${reviewText}` : `No reviews are available. Base your analysis on the product title and name alone.`}
+Customer Reviews:
+${reviewText}
 
-
-Reviews:
-Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.
+Respond ONLY with a valid JSON object matching this shape. No markdown, no backticks, no explanation.
 
 {
-  "purchaseCriteria": ["top 5 reasons customers buy this product"],
-  "complaints": ["top 3 complaints or negatives"],
-  "sentimentScore": ${reviews.length > 0 ? "<number from 1 to 5 based on reviews>" : "0"},
-  "differentiators": ["top 3 things that make this product stand out"]
+  "purchaseCriteria": ["specific reason from these reviews", "specific reason from these reviews"],
+  "complaints": ["specific complaint from these reviews"],
+  "sentimentScore": 4.2,
+  "differentiators": ["specific standout point from these reviews"]
 }`;
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
   try {
     let response;
@@ -52,6 +141,10 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
         response = await ai.models.generateContent({
           model: "gemini-2.0-flash",
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: ANALYSIS_SCHEMA,
+          },
         });
         break;
       } catch (err: any) {
@@ -65,19 +158,21 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
     }
 
     const text = response?.text ?? "";
-    const clean = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+    const parsed = parseGeminiJson(text);
+    const sentimentScore = Number(parsed.sentimentScore);
 
     return {
       purchaseCriteria:
-        parsed.purchaseCriteria ?? defaultResponse.purchaseCriteria,
-      complaints: parsed.complaints ?? defaultResponse.complaints,
-      sentimentScore: parsed.sentimentScore ?? 3,
+        normalizeStringArray(parsed.purchaseCriteria, fallbackResponse.purchaseCriteria),
+      complaints: normalizeStringArray(parsed.complaints, fallbackResponse.complaints),
+      sentimentScore: Number.isFinite(sentimentScore)
+        ? Math.min(5, Math.max(1, sentimentScore))
+        : fallbackResponse.sentimentScore,
       differentiators:
-        parsed.differentiators ?? defaultResponse.differentiators,
+        normalizeStringArray(parsed.differentiators, fallbackResponse.differentiators),
     };
   } catch (error) {
     console.error(`Gemini analysis failed for ${asin}:`, error);
-    return defaultResponse;
+    return fallbackResponse;
   }
 };
