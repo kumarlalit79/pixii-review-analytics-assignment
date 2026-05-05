@@ -30,7 +30,7 @@ export default function InputPage() {
   const fillSampleData = () => {
     setMainUrl("https://www.amazon.in/dp/B08QN46H4G");
     setCompetitorUrls([
-      "https://www.amazon.in/dp/B0828PRFKP",
+      "https://www.amazon.in/dp/B01DBL3CMW",
     ]);
   };
 
