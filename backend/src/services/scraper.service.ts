@@ -83,9 +83,19 @@ export const scrapeReviews = async (asin: string): Promise<string[]> => {
     const response = await axiosInstance.get(url);
     const $ = cheerio.load(response.data);
 
+    const pageTitle = $("title").text();
+    if (
+      pageTitle.toLowerCase().includes("robot check") ||
+      pageTitle.toLowerCase().includes("sign in") ||
+      pageTitle.toLowerCase().includes("captcha")
+    ) {
+      console.log("Blocked by Amazon on reviews page:", pageTitle);
+      return [];
+    }
+
     const reviews: string[] = [];
 
-    $("#cm-cr-dp-review-list .review").each((_, el) => {
+    $("[data-hook='review']").each((_, el) => {
       const text = $(el).find("[data-hook='review-body'] span").text().trim();
 
       if (text && text.length > 20) {
