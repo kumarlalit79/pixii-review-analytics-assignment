@@ -1,4 +1,4 @@
-import pixiiLogo from "../src/assets/pixiiLogo.svg";
+import pixiiLogo from "../src/assets/pixiilogo.svg";
 
 export default function Navbar() {
   return (
