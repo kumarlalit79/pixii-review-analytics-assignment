@@ -27,6 +27,13 @@ export default function InputPage() {
     setCompetitorUrls(competitorUrls.filter((_, i) => i !== index));
   };
 
+  const fillSampleData = () => {
+    setMainUrl("https://www.amazon.in/dp/B08QN46H4G");
+    setCompetitorUrls([
+      "https://www.amazon.in/dp/B0828PRFKP",
+    ]);
+  };
+
   const handleSubmit = async () => {
     if (!mainUrl.trim()) {
       setError("Please enter a main listing URL");
@@ -112,6 +119,23 @@ export default function InputPage() {
 
           {/* Main URL input */}
           <div style={{ marginBottom: "24px" }}>
+            <div style={{ textAlign: "right", marginBottom: "8px" }}>
+              <button
+                onClick={fillSampleData}
+                style={{
+                  fontFamily: "'Switzer', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  color: "#CE4522",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                Try Sample Data →
+              </button>
+            </div>
             <label
               style={{
                 display: "block",
