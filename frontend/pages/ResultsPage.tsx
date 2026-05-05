@@ -49,6 +49,20 @@ export default function ResultsPage() {
     { name: "No Data", value: insights.filter(i => i.sentimentScore === 0).length, color: "#e5e7eb" },
   ].filter(d => d.value > 0);
 
+  // AI Competitive Summary — synthesized from existing data
+  const mainInsight = insights.find(i => products.find(p => p.asin === i.asin && p.isMain));
+  const topCompetitor = products.filter(p => !p.isMain).sort((a, b) => b.estimatedMonthlyRevenue - a.estimatedMonthlyRevenue)[0];
+  const topCompetitorInsight = insights.find(i => i.asin === topCompetitor?.asin);
+
+  const aiSummary = mainInsight
+    ? `Your listing scores ${mainInsight.sentimentScore}/5 in customer sentiment. Customers primarily buy it for ${mainInsight.purchaseCriteria?.slice(0, 2).join(" and ")}. ${mainInsight.complaints?.length ? `Key concern to address: ${mainInsight.complaints[0]}.` : ""} ${topCompetitor ? `Your top competitor (${topCompetitor.title.slice(0, 40)}...) has an estimated monthly revenue of ₹${topCompetitor.estimatedMonthlyRevenue.toLocaleString()} and differentiates on ${topCompetitorInsight?.differentiators?.[0] ?? "similar features"}.` : ""}`
+    : null;
+
+  // Best Value product — rated by (rating × estimatedMonthlySales)
+  const bestValueProduct = [...products].sort((a, b) =>
+    (b.rating * b.estimatedMonthlySales) - (a.rating * a.estimatedMonthlySales)
+  )[0];
+
   const handleReset = () => {
     reset();
     navigate("/");
@@ -108,6 +122,46 @@ export default function ResultsPage() {
               ← New Analysis
             </button>
           </div>
+
+          {/* AI COMPETITIVE SUMMARY */}
+          {aiSummary && (
+            <div
+              style={{
+                background: "linear-gradient(135deg, #fff8f6, #fff)",
+                borderLeft: "4px solid #CE4522",
+                borderRadius: "12px",
+                padding: "24px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                marginBottom: "36px",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Switzer', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  color: "#CE4522",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  display: "block",
+                  marginBottom: "12px",
+                }}
+              >
+                🤖 AI COMPETITIVE SUMMARY
+              </span>
+              <p
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: "15px",
+                  color: "#151414",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                {aiSummary}
+              </p>
+            </div>
+          )}
 
           {/* QUICK SUMMARY */}
           {mainProduct && (
@@ -301,6 +355,22 @@ export default function ResultsPage() {
                           >
                             {p.isMain ? "MAIN" : "COMP"}
                           </span>
+                          {p._id === bestValueProduct?._id && (
+                            <span
+                              style={{
+                                marginLeft: "6px",
+                                fontSize: "10px",
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                padding: "2px 6px",
+                                borderRadius: "99px",
+                                fontFamily: "'Switzer', sans-serif",
+                                fontWeight: 600,
+                              }}
+                            >
+                              🏆 Best Value
+                            </span>
+                          )}
                           <span style={{ color: "#151414" }}>
                             {p.title.slice(0, 50)}...
                           </span>
