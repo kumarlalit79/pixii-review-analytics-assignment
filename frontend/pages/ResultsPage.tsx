@@ -8,6 +8,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  PieChart,
+  Pie,
+  Legend,
 } from "recharts";
 import Navbar from "../components/Navbar";
 
@@ -37,6 +40,14 @@ export default function ResultsPage() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6)
     .map(([name, count]) => ({ name, count }));
+
+  // sentiment breakdown for pie chart
+  const sentimentData = [
+    { name: "Positive", value: insights.filter(i => i.sentimentScore >= 4).length, color: "#22c55e" },
+    { name: "Neutral", value: insights.filter(i => i.sentimentScore >= 3 && i.sentimentScore < 4).length, color: "#f59e0b" },
+    { name: "Negative", value: insights.filter(i => i.sentimentScore < 3 && i.sentimentScore > 0).length, color: "#ef4444" },
+    { name: "No Data", value: insights.filter(i => i.sentimentScore === 0).length, color: "#e5e7eb" },
+  ].filter(d => d.value > 0);
 
   const handleReset = () => {
     reset();
@@ -325,7 +336,7 @@ export default function ResultsPage() {
             </div>
           </Section>
 
-          {/* PURCHASE CRITERIA CHART */}
+          {/* PURCHASE CRITERIA CHART — CHANGE 1: Vertical bar chart */}
           {chartData.length > 0 && (
             <Section title="Top Purchase Criteria Across All Listings">
               <div
@@ -338,28 +349,39 @@ export default function ResultsPage() {
                     fontWeight: 700,
                     fontSize: "18px",
                     color: "#151414",
-                    marginBottom: "20px",
+                    marginBottom: "6px",
                   }}
                 >
-                  Purchase Drivers
+                  What drives purchases in this market
                 </h3>
-                <ResponsiveContainer width="100%" height={260}>
+                {/* CHANGE 4: Chart explanation */}
+                <p
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "13px",
+                    color: "#6b6b6b",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Based on AI analysis of customer reviews across all analyzed listings
+                </p>
+                <ResponsiveContainer width="100%" height={280}>
                   <BarChart
                     data={chartData}
-                    layout="vertical"
-                    margin={{ left: 20, right: 20 }}
+                    margin={{ left: 10, right: 10, bottom: 40 }}
                   >
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
+                    <XAxis
                       dataKey="name"
-                      width={200}
                       tick={{
                         fill: "#6b6b6b",
-                        fontSize: 13,
+                        fontSize: 11,
                         fontFamily: "'DM Sans', sans-serif",
                       }}
+                      angle={-20}
+                      textAnchor="end"
+                      interval={0}
                     />
+                    <YAxis hide />
                     <Tooltip
                       contentStyle={{
                         background: "#FFFFFF",
@@ -367,17 +389,96 @@ export default function ResultsPage() {
                         borderRadius: "8px",
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: "13px",
-                        boxShadow:
-                          "0 4px 12px rgba(0,0,0,0.06)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                       }}
                       labelStyle={{ color: "#151414" }}
+                      formatter={(value: number) => [`Appears in ${value} listing${value > 1 ? "s" : ""}`, "Frequency"]}
                     />
-                    <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                       {chartData.map((_, i) => (
                         <Cell key={i} fill={i === 0 ? "#CE4522" : "#e8e4e0"} />
                       ))}
                     </Bar>
                   </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
+          {/* CHANGE 2: Sentiment Pie Chart */}
+          {sentimentData.length > 0 && (
+            <Section title="Sentiment Analysis">
+              <div
+                className="pixii-card"
+                style={{ padding: "24px", border: "1px solid #e8e4e0" }}
+              >
+                <h3
+                  style={{
+                    fontFamily: "'Cabinet Grotesk', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "18px",
+                    color: "#151414",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Sentiment Overview
+                </h3>
+                {/* CHANGE 4: Pie chart explanation */}
+                <p
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "12px",
+                    color: "#6b6b6b",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Sentiment score ≥4 = Positive, 3-4 = Neutral, &lt;3 = Negative
+                </p>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={sentimentData}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={45}
+                      paddingAngle={2}
+                      strokeWidth={0}
+                    >
+                      {sentimentData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "#FFFFFF",
+                        border: "1px solid #e8e4e0",
+                        borderRadius: "8px",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "13px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                      }}
+                      formatter={(value: number, name: string) => [`${value} listing${value > 1 ? "s" : ""}`, name]}
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      formatter={(value: string) => {
+                        const item = sentimentData.find(d => d.name === value);
+                        return (
+                          <span
+                            style={{
+                              fontFamily: "'DM Sans', sans-serif",
+                              fontSize: "13px",
+                              color: "#4b4b4b",
+                            }}
+                          >
+                            {value} ({item?.value ?? 0})
+                          </span>
+                        );
+                      }}
+                    />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
             </Section>
@@ -501,7 +602,7 @@ export default function ResultsPage() {
                       />
                     </div>
 
-                    {/* Sample reviews */}
+                    {/* CHANGE 3: Fixed review samples display */}
                     {ins.reviewsSample && ins.reviewsSample.length > 0 && (
                       <div
                         style={{
@@ -523,21 +624,38 @@ export default function ResultsPage() {
                         >
                           Sample Reviews
                         </p>
-                        {ins.reviewsSample.slice(0, 2).map((r, i) => (
-                          <p
-                            key={i}
-                            style={{
-                              fontFamily: "'DM Sans', sans-serif",
-                              fontSize: "13px",
-                              color: "#6b6b6b",
-                              fontStyle: "italic",
-                              marginBottom: "6px",
-                              lineHeight: "1.5",
-                            }}
-                          >
-                            "{r.slice(0, 120)}..."
-                          </p>
-                        ))}
+                        {ins.reviewsSample.slice(0, 5).map((r, i) => {
+                          const cleanedReview = r
+                            .replace(/Read more\.\.\./g, "")
+                            .replace(/Read more/g, "")
+                            .trim();
+                          if (!cleanedReview) return null;
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                background: "#f9f7f5",
+                                borderRadius: "8px",
+                                padding: "10px 14px",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              <p
+                                style={{
+                                  fontFamily: "'DM Sans', sans-serif",
+                                  fontSize: "13px",
+                                  color: "#4b4b4b",
+                                  fontStyle: "italic",
+                                  lineHeight: "1.5",
+                                  margin: 0,
+                                }}
+                              >
+                                <span style={{ color: "#CE4522", fontStyle: "normal", fontSize: "18px", marginRight: "4px", verticalAlign: "text-top", lineHeight: 1 }}>"</span>
+                                {cleanedReview}
+                              </p>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

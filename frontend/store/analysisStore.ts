@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface Product {
   _id: string;
@@ -42,16 +43,23 @@ interface AnalysisStore {
   reset: () => void;
 }
 
-export const useAnalysisStore = create<AnalysisStore>((set) => ({
-  analysisId: null,
-  status: "",
-  progress: 0,
-  totalListings: 0,
-  results: null,
-  setAnalysisStarted: (id, total) =>
-    set({ analysisId: id, totalListings: total, status: "pending", results: null }),
-  setStatus: (status, progress) => set({ status, progress }),
-  setResults: (results) => set({ results }),
-  reset: () =>
-    set({ analysisId: null, status: "", progress: 0, totalListings: 0, results: null }),
-}));
+export const useAnalysisStore = create<AnalysisStore>()(
+  persist(
+    (set) => ({
+      analysisId: null,
+      status: "",
+      progress: 0,
+      totalListings: 0,
+      results: null,
+      setAnalysisStarted: (id, total) =>
+        set({ analysisId: id, totalListings: total, status: "pending", results: null }),
+      setStatus: (status, progress) => set({ status, progress }),
+      setResults: (results) => set({ results }),
+      reset: () =>
+        set({ analysisId: null, status: "", progress: 0, totalListings: 0, results: null }),
+    }),
+    {
+      name: "pixii-analysis-store",
+    }
+  )
+);

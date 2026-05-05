@@ -75,7 +75,7 @@ export const runAnalysis = async (
       await Analysis.findByIdAndUpdate(analysisId, { progress: i + 1 });
 
       // delay between listings to avoid hammering scraper credits
-      if (i < allASINs.length - 1) await delay(3000);
+      if (i < allASINs.length - 1) await delay(1500);
     }
 
     await Analysis.findByIdAndUpdate(analysisId, { status: "complete" });

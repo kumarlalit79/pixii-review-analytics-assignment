@@ -14,11 +14,7 @@ export default function Navbar() {
         className="flex items-center justify-between"
         style={{ maxWidth: "1280px", margin: "0 auto" }}
       >
-        <img
-          src={pixiiLogo}
-          alt="Pixii.ai"
-          style={{ height: "28px" }}
-        />
+        <img src={pixiiLogo} alt="Pixii.ai" style={{ height: "28px" }} />
         <span
           style={{
             fontFamily: "'Switzer', sans-serif",

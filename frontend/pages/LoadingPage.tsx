@@ -88,7 +88,7 @@ export default function LoadingPage() {
               lineHeight: "1.5",
             }}
           >
-            Scraping reviews and running AI analysis. This takes 30–60 seconds.
+            Scraping reviews and running AI analysis. This takes 30–90 seconds depending on number of listings.
           </p>
 
           {/* Progress bar */}

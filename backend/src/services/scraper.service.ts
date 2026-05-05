@@ -9,7 +9,6 @@ const buildUrl = (targetUrl: string): string => {
 };
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
-const getRandomDelay = () => Math.floor(Math.random() * 2000) + 2000;
 
 const axiosInstance = axios.create({
   timeout: 60000,
@@ -49,7 +48,6 @@ export const scrapeListingPage = async (asin: string) => {
     const reviewCount =
       parseInt(reviewCountText.replace(/[^0-9]/g, ""), 10) || 0;
 
-    // BSR - search entire page text for "Best Sellers Rank" pattern
     const fullText =
       $("#prodDetails").text() +
       $("#detailBullets_feature_div").text() +
@@ -87,7 +85,6 @@ export const scrapeReviews = async (asin: string): Promise<string[]> => {
 
     const reviews: string[] = [];
 
-    // PRIMARY selector
     $("#cm-cr-dp-review-list .review").each((_, el) => {
       const text = $(el).find("[data-hook='review-body'] span").text().trim();
 
@@ -96,7 +93,6 @@ export const scrapeReviews = async (asin: string): Promise<string[]> => {
       }
     });
 
-    // 🔥 fallback selector 1
     if (reviews.length === 0) {
       $("[data-hook='review-body']").each((_, el) => {
         const text = $(el).text().trim();
@@ -104,7 +100,6 @@ export const scrapeReviews = async (asin: string): Promise<string[]> => {
       });
     }
 
-    // 🔥 fallback selector 2
     if (reviews.length === 0) {
       $(".review-text-content span").each((_, el) => {
         const text = $(el).text().trim();
@@ -112,35 +107,28 @@ export const scrapeReviews = async (asin: string): Promise<string[]> => {
       });
     }
 
-    // DEBUG (add temporarily)
     console.log("Page title:", $("title").text());
     console.log("HTML length:", response.data.length);
 
     console.log(`Extracted ${reviews.length} reviews from product page`);
 
-    // 🧠 fallback if still empty
     if (reviews.length === 0) {
-      console.log("Using fallback reviews");
-      return [
-        "Sound quality is amazing and battery lasts long.",
-        "ANC works well but case feels cheap.",
-        "Comfortable for long usage, worth the price.",
-        "Mic quality could be better during calls.",
-        "Great bass and connectivity is stable.",
-      ];
+      console.log("No reviews found — proceeding with empty reviews");
+      return [];
     }
 
-    return reviews.slice(0, 20); // enough for analysis
+    return reviews
+      .map((r) =>
+        r
+          .replace(/Read more\.\.\./gi, "")
+          .replace(/Read more/gi, "")
+          .trim(),
+      )
+      .filter((r) => r.length > 20)
+      .slice(0, 20);
   } catch (error) {
     console.error("Review scrape failed:", error);
 
-    // fallback always safe
-    return [
-      "Sound quality is amazing and battery lasts long.",
-      "ANC works well but case feels cheap.",
-      "Comfortable for long usage, worth the price.",
-      "Mic quality could be better during calls.",
-      "Great bass and connectivity is stable.",
-    ];
+    return [];
   }
 };
