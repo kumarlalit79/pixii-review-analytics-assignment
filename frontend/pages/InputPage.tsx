@@ -28,9 +28,9 @@ export default function InputPage() {
   };
 
   const fillSampleData = () => {
-    setMainUrl("https://www.amazon.in/dp/B08QN46H4G");
+    setMainUrl("https://www.amazon.in/dp/B09NDW3ZDH");
     setCompetitorUrls([
-      "https://www.amazon.in/dp/B0FYPPX537",
+      "https://www.amazon.in/dp/B0BX9DZB46",
     ]);
   };
 

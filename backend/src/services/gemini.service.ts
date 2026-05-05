@@ -107,13 +107,31 @@ export const analyzeReviews = async (
   reviews: string[],
 ): Promise<ReviewAnalysis> => {
   const defaultResponse: ReviewAnalysis = {
-    purchaseCriteria: ["Quality", "Value for money", "Performance"],
-    complaints: ["No major complaints found"],
+    purchaseCriteria: ["Product features", "Brand consideration", "Price point"],
+    complaints: ["Review scrape unavailable"],
     sentimentScore: 3,
-    differentiators: ["Competitive pricing"],
+    differentiators: ["Listed product specifications"],
   };
 
-  if (reviews.length === 0) return defaultResponse;
+  if (reviews.length === 0) {
+    const title = productTitle.toLowerCase();
+    const criteria = [
+      title.includes("camera") ? "Camera quality" : "",
+      title.includes("ram") || title.includes("storage") ? "RAM and storage" : "",
+      title.includes("battery") || title.includes("mah") ? "Battery life" : "",
+      title.includes("charging") ? "Fast charging" : "",
+      title.includes("display") || title.includes("fhd") ? "Display quality" : "",
+    ].filter(Boolean);
+
+    return {
+      purchaseCriteria:
+        criteria.length > 0 ? criteria : defaultResponse.purchaseCriteria,
+      complaints: ["Could not extract review text from Amazon page"],
+      sentimentScore: 3,
+      differentiators:
+        criteria.length > 0 ? criteria.slice(0, 3) : defaultResponse.differentiators,
+    };
+  }
 
   const fallbackResponse = buildReviewBasedFallback(reviews);
   const reviewText = reviews.slice(0, 20).join("\n---\n");
