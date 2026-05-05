@@ -1,111 +1,186 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,400&f[]=switzer@500,600,700&display=swap');
+
+/* ===== CSS Custom Properties (Pixii Brand) ===== */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --pixii-primary: #CE4522;
+  --pixii-primary-hover: #b33d1e;
+  --pixii-bg: #FBF9F7;
+  --pixii-card: #FFFFFF;
+  --pixii-text: #151414;
+  --pixii-text-secondary: #6b6b6b;
+  --pixii-border: #e8e4e0;
+  --pixii-border-light: #f0ece8;
+  --pixii-table-header-bg: #f5f3f0;
+  --pixii-main-row-bg: rgba(206, 69, 34, 0.04);
+  --pixii-hover-bg: #faf8f6;
+  --pixii-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --pixii-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --pixii-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --font-heading: 'Cabinet Grotesk', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-ui: 'Switzer', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+/* ===== Global Reset & Base ===== */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
+  padding: 0;
+  background: var(--pixii-bg);
+  color: var(--pixii-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border: none;
+}
+
+/* ===== Typography ===== */
+h1, h2 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--pixii-text);
+  margin: 0;
+  line-height: 1.15;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: 40px;
+  letter-spacing: -0.5px;
 }
+
 h2 {
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
 }
+
 p {
   margin: 0;
+  font-family: var(--font-body);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* ===== Animations ===== */
+
+/* Page fade-in */
+@keyframes pixii-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.pixii-fade-in {
+  animation: pixii-fade-in 0.5s ease both;
 }
+
+/* Progress bar shimmer */
+@keyframes pixii-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.pixii-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--pixii-primary) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    var(--pixii-primary) 100%
+  );
+  background-size: 200px 100%;
+  animation: pixii-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Spinner */
+@keyframes pixii-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.pixii-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--pixii-border);
+  border-top-color: var(--pixii-primary);
+  border-radius: 50%;
+  animation: pixii-spin 0.8s linear infinite;
+}
+
+/* Card hover effect */
+.pixii-card {
+  background: var(--pixii-card);
+  border-radius: 12px;
+  box-shadow: var(--pixii-shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pixii-card:hover {
+  box-shadow: var(--pixii-shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Button hover */
+.pixii-btn {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.pixii-btn:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+/* Input focus */
+.pixii-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pixii-input:focus {
+  outline: none;
+  border-color: var(--pixii-primary) !important;
+  box-shadow: 0 0 0 3px rgba(206, 69, 34, 0.1) !important;
+}
+
+/* Stagger animation for insight cards */
+.pixii-stagger-0 { animation: pixii-fade-in 0.5s ease 0s both; }
+.pixii-stagger-1 { animation: pixii-fade-in 0.5s ease 0.1s both; }
+.pixii-stagger-2 { animation: pixii-fade-in 0.5s ease 0.2s both; }
+.pixii-stagger-3 { animation: pixii-fade-in 0.5s ease 0.3s both; }
+.pixii-stagger-4 { animation: pixii-fade-in 0.5s ease 0.4s both; }
+.pixii-stagger-5 { animation: pixii-fade-in 0.5s ease 0.5s both; }
+.pixii-stagger-6 { animation: pixii-fade-in 0.5s ease 0.6s both; }
+.pixii-stagger-7 { animation: pixii-fade-in 0.5s ease 0.7s both; }
+.pixii-stagger-8 { animation: pixii-fade-in 0.5s ease 0.8s both; }
+.pixii-stagger-9 { animation: pixii-fade-in 0.5s ease 0.9s both; }
